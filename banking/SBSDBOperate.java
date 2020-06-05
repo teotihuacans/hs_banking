@@ -49,7 +49,7 @@ public class SBSDBOperate {
         return 0;
     }
 
-    public static String[] getCardInfo(String number){
+    public static String[] getCardInfo(String number) {
         String sql = "SELECT number, pin, balance "
                 + "FROM card WHERE number = ?";
         String[] retMas = new String[3];
@@ -74,6 +74,38 @@ public class SBSDBOperate {
         return retMas;
     }
 
+    public static Integer getAccountBalance(String number) {
+        String sql = "SELECT balance FROM card WHERE number = ?";
+
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement pstmt  = conn.prepareStatement(sql)){
+            pstmt.setString(1, number);
+            ResultSet rs  = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("balance");
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return 0;
+    }
+
+    public static void setAccountBalance(String number, Integer amount) {
+        String sql = "UPDATE card SET balance = ? WHERE number = ?";
+
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement pstmt  = conn.prepareStatement(sql)){
+            pstmt.setInt(1, amount);
+            pstmt.setString(2, number);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public static void insertCard(Integer id, String number, String pin, Integer balance) {
         String sql = "INSERT INTO card(id, number, pin, balance) VALUES(?,?,?,?)";
 
@@ -83,6 +115,18 @@ public class SBSDBOperate {
             pstmt.setString(2, number);
             pstmt.setString(3, pin);
             pstmt.setInt(4, balance);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void deleteCard(String number) {
+        String sql = "DELETE FROM card WHERE number = ?";
+
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, number);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());

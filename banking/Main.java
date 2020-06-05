@@ -12,7 +12,7 @@ public class Main {
         String menuPoint;
 
         while (!(menuPoint = input.next()).equals("0")) {
-            controller.menuHandler(menuPoint);
+            controller.menuHandler(menuPoint, input);
         }
         input.close();
 

@@ -90,8 +90,45 @@ public class SBSModel {
         isAuthorized = false;
     }
 
-    public Integer getAccountData() {
+    public Integer getAccountBalance() {
+        currentAccountBalance = SBSDBOperate.getAccountBalance(currentAccount.toString());
         return currentAccountBalance;
+    }
+
+    public void addIncome(Integer amount) {
+        SBSDBOperate.setAccountBalance(currentAccount.toString(), currentAccountBalance + amount);
+        getAccountBalance();
+    }
+
+    public String doTransferValidate(String toCardNum) {
+        StringBuilder subNum = new StringBuilder(toCardNum.substring(0, toCardNum.length() - 1));
+        String[] cardMas = SBSDBOperate.getCardInfo(toCardNum);
+        if (toCardNum.equals(currentAccount.toString())) {
+            return "You can't transfer money to the same account!";
+        } else if (Integer.parseInt(toCardNum.substring(toCardNum.length() - 1)) != (algorithmLuhn(subNum))) {
+            return "Probably you made mistake in card number. Please try again!";
+        } else if (!toCardNum.equals(cardMas[0])) {
+            return "Such a card does not exist.";
+        }
+        return null;
+    }
+
+    public String doTransferSumValidate(Integer transferSum) {
+        if (transferSum > currentAccountBalance) {
+            return "Not enough money!";
+        }
+        return null;
+    }
+
+    public void doTransfer(String toCardNum, Integer transferSum) {
+        Integer toCardBalance = SBSDBOperate.getAccountBalance(toCardNum);
+        SBSDBOperate.setAccountBalance(currentAccount.toString(), currentAccountBalance - transferSum);
+        SBSDBOperate.setAccountBalance(toCardNum, toCardBalance + transferSum);
+        getAccountBalance();
+    }
+
+    public void deleteAccount() {
+        SBSDBOperate.deleteCard(currentAccount.toString());
     }
 
     protected void initModel(String[] args) {
