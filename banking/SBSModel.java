@@ -1,16 +1,16 @@
 package banking;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class SBSModel {
-    private List<String> cardsBase = new ArrayList<>();
-    private List<String> pinBase = new ArrayList<>();
-    private List<Integer> balanceBase = new ArrayList<>();
+    //private List<String> cardsBase = new ArrayList<>();
+   // private List<String> pinBase = new ArrayList<>();
+    //private List<Integer> balanceBase = new ArrayList<>();
     private boolean isAuthorized = false;
     private StringBuilder currentAccount = new StringBuilder();
-    private Integer currentAccountIndex;
+    private Integer currentAccountBalance;
+    private Integer maxAccountIndex;
+    private String db_file_name = "db.s3db";
 
     public boolean authorized() {
         return isAuthorized;
@@ -24,10 +24,12 @@ public class SBSModel {
         //We use fixed: 400000
         StringBuilder cardNum = new StringBuilder();
         cardNum.append("400000");
-        for (int i = 100000000; i > cardsBase.size() + 1; i /= 10) {
+        maxAccountIndex++;
+        for (int i = 100000000; i > maxAccountIndex; i /= 10) {
             cardNum.append(0);
         }
-        cardNum.append(cardsBase.size() + 1);
+        //cardNum.append(cardsBase.size() + 1);
+        cardNum.append(maxAccountIndex);
         //cardNum.append(8); //Checksum
         cardNum.append(algorithmLuhn(cardNum));
 
@@ -66,17 +68,16 @@ public class SBSModel {
     }
 
     public void saveNewAccount(String cardNum, String cardPin) {
-        cardsBase.add(cardNum);
-        pinBase.add(cardPin);
-        balanceBase.add(0);
+        SBSDBOperate.insertCard(maxAccountIndex, cardNum, cardPin, 0);
     }
 
     public boolean logIn(String cardNum, String cardPin) {
-        int k = cardsBase.indexOf(cardNum);
-        if (k >= 0 && cardPin.equals(pinBase.get(k))) {
+        String[] loginData = SBSDBOperate.getCardInfo(cardNum);
+
+        if (cardPin.equals(loginData[1])) {
             isAuthorized = true;
             currentAccount.append(cardNum);
-            currentAccountIndex = k;
+            currentAccountBalance = Integer.parseInt(loginData[2]);
             return true;
         } else {
             return false;
@@ -85,11 +86,37 @@ public class SBSModel {
 
     public void  logOut() {
         currentAccount.delete(0, currentAccount.length());
-        currentAccountIndex = null;
+        currentAccountBalance = null;
         isAuthorized = false;
     }
 
     public Integer getAccountData() {
-        return balanceBase.get(currentAccountIndex);
+        return currentAccountBalance;
+    }
+
+    protected void initModel(String[] args) {
+        for (int i = 0; i < args.length; i += 2) {
+            if ("-fileName".equals(args[i])) {
+                db_file_name = args[i + 1];
+            }
+        }
+        dbInit();
+    }
+
+    protected void dbInit() {
+        String sql = "CREATE TABLE IF NOT EXISTS card ("
+                + "	id INTEGER,"
+                + "	number TEXT,"
+                + "	pin TEXT,"
+                + " balance INTEGER DEFAULT 0"
+                + ");";
+
+        //String url = "jdbc:sqlite:C:\\Users\\adenisov\\IdeaProjects\\Simple Banking System\\Simple Banking System\\task\\src\\banking\\" + db_file_name;
+        String url = "jdbc:sqlite:" + db_file_name;
+
+        SBSDBOperate.setUrl(url);
+        SBSDBOperate.createNewDatabase();
+        SBSDBOperate.createNewTable(sql);
+        maxAccountIndex = SBSDBOperate.queryMaxId();
     }
 }

@@ -6,11 +6,12 @@ public class Main {
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
         SBSModel model = new SBSModel();
+        model.initModel(args);
         SBSView view = new SBSView();
         SBSController controller = new SBSController(view, model);
-        int menuPoint;
+        String menuPoint;
 
-        while ((menuPoint = input.nextInt()) != 0) {
+        while (!(menuPoint = input.next()).equals("0")) {
             controller.menuHandler(menuPoint);
         }
         input.close();

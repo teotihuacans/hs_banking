@@ -24,9 +24,9 @@ public class SBSController {
         view.print("0. Exit");
     }
 
-    public void menuHandler(int point) {
+    public void menuHandler(String point) {
         view.print("");
-        if (point == 1 && !model.authorized()) {
+        if ("1".equals(point) && !model.authorized()) {
             String cardNum = model.createCard();
             String cardPin = model.generatePin(cardNum);
             view.print("Your card have been created");
@@ -35,7 +35,7 @@ public class SBSController {
             view.print("Your card PIN:");
             view.print(cardPin);
             model.saveNewAccount(cardNum, cardPin);
-        } else if (point == 2 && !model.authorized()) {
+        } else if ("2".equals(point) && !model.authorized()) {
             Scanner in = new Scanner(System.in);
             view.print("Enter your card number:");
             String inCard = in.nextLine();
@@ -46,12 +46,14 @@ public class SBSController {
             } else {
                 view.print("Wrong card number or PIN!");
             }
-            in.close();
-        } else if (point == 1 && model.authorized()) {
+            //in.close();
+        } else if ("1".equals(point) && model.authorized()) {
             view.print("Balance: " + model.getAccountData());
-        } else if (point == 2 && model.authorized()) {
+        } else if ("2".equals(point) && model.authorized()) {
             model.logOut();
             view.print("You have successfully logged out!");
+        } else {
+            view.print("Wrong command! (" + point + ")");
         }
 
         view.print("");
